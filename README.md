@@ -1,1 +1,100 @@
-# whoami
+# Whoami Json web server
+
+
+## Routes
+
+<details>
+<summary>/ - Get whoami server info</summary>
+
+Request:
+```bash
+curl -Ss http://localhost | jq
+```
+
+Response:
+```json
+{
+  "hostname": "f5586493e4fd",
+  "ip": [
+    "172.17.0.2"
+  ],
+  "host": "localhost",
+  "headers": {
+    "Accept": [
+      "*/*"
+    ],
+    "User-Agent": [
+      "curl/7.59.0"
+    ]
+  },
+  "remote_addr": "172.17.0.1:51282",
+  "user_agent": "curl/7.59.0",
+  "content_type": "application/json",
+  "content_length": 0
+}
+```
+</details>
+
+
+<details>
+<summary>/env - Get environment variable value from server by key</summary>
+
+Request:
+```bash
+curl -Ss http://localhost/env?key=HOSTNAME | jq
+```
+Response:
+```json
+{
+  "HOSTNAME": "f5586493e4fd"
+}
+```
+</details>
+
+
+<details>
+<summary>/ping - Check server by ping</summary>
+
+Request:
+```bash
+curl -Ss http://localhost/ping | jq
+```
+Response:
+```json
+{
+  "ping": "pong"
+}
+```
+</details>
+
+
+<details>
+<summary>/metrics - Get server metrics in Prometheus format</summary>
+
+Request:
+```bash
+curl -Ss http://localhost/metrics
+```
+Response:
+```
+promhttp_metric_handler_requests_total{code="200"} 0
+promhttp_metric_handler_requests_total{code="500"} 0
+promhttp_metric_handler_requests_total{code="503"} 0
+```
+</details>
+
+
+## Usage
+
+To start docker image run:
+```bash
+docker run --rm -p 80:80 krezz/whoami
+```
+
+
+## Environment variables
+
+| Environment variable | Default value | Required | Description |
+| --- | --- | --- | --- |
+| `WEB_SERVER_HOST` | `0.0.0.0` | `false` | Web server listen host |
+| `WEB_SERVER_PORT` | `80` | `false` | Web server listen port |
