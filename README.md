@@ -14,11 +14,12 @@ curl -Ss http://localhost | jq
 Response:
 ```json
 {
-  "hostname": "f5586493e4fd",
+  "hostname": "my-laptop",
   "ip": [
-    "172.17.0.2"
+    "172.17.0.1",
   ],
   "host": "localhost",
+  "url": "/api/v1/status",
   "headers": {
     "Accept": [
       "*/*"
@@ -27,26 +28,9 @@ Response:
       "curl/7.59.0"
     ]
   },
-  "remote_addr": "172.17.0.1:51282",
+  "remote_addr": "172.17.0.1:52550",
   "user_agent": "curl/7.59.0",
-  "content_type": "application/json",
-  "content_length": 0
-}
-```
-</details>
-
-
-<details>
-<summary>/env - Get environment variable value from server by key</summary>
-
-Request:
-```bash
-curl -Ss http://localhost/env?key=HOSTNAME | jq
-```
-Response:
-```json
-{
-  "HOSTNAME": "f5586493e4fd"
+  "content_type": "application/json"
 }
 ```
 </details>

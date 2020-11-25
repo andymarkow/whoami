@@ -12,9 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	log *logrus.Logger
-)
+var log *logrus.Logger
 
 func init() {
 	log = logrus.New()
@@ -24,14 +22,19 @@ func init() {
 	})
 }
 
-func main() {
-	appServerHost := getEnv("WEB_SERVER_HOST", "0.0.0.0")
-	appServerPort := getEnv("WEB_SERVER_PORT", "80")
+type server struct {
+	cfg *config
+	web *http.Server
+}
 
+func main() {
 	// Server context initialization
-	srv := &http.Server{
-		Addr:         fmt.Sprintf("%s:%s", appServerHost, appServerPort),
-		Handler:      router(),
+	srv := &server{
+		cfg: getConfig(),
+	}
+	srv.web = &http.Server{
+		Addr:         fmt.Sprintf("%s:%s", srv.cfg.ServerHost, srv.cfg.ServerPort),
+		Handler:      srv.getRouter(),
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
 	}
@@ -40,9 +43,9 @@ func main() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	log.Infof("Starting web server on port %s", appServerPort)
+	log.Infof("Starting web server on port %s", srv.cfg.ServerPort)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.web.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
 	}()
@@ -55,15 +58,8 @@ func main() {
 		cancel()
 	}()
 
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.web.Shutdown(ctx); err != nil {
 		log.Errorf("Web server graceful shutdown has failed: %+v", err)
 	}
 	log.Info("Web server gracefully stopped")
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }
