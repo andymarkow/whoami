@@ -14,6 +14,7 @@ func (s *server) whoamiHandler() http.HandlerFunc {
 		IP          []net.IP    `json:"ip"`
 		Host        string      `json:"host"`
 		URL         string      `json:"url"`
+		Method      string      `json:"method"`
 		Headers     http.Header `json:"headers"`
 		RemoteAddr  string      `json:"remote_addr"`
 		UserAgent   string      `json:"user_agent"`
@@ -55,6 +56,7 @@ func (s *server) whoamiHandler() http.HandlerFunc {
 			IP:          localIPs,
 			Host:        r.Host,
 			URL:         r.URL.String(),
+			Method:      r.Method,
 			Headers:     r.Header.Clone(),
 			RemoteAddr:  remoteAddr,
 			UserAgent:   r.UserAgent(),
