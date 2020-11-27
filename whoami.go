@@ -9,16 +9,16 @@ import (
 )
 
 func (s *server) whoamiHandler() http.HandlerFunc {
+
 	type Response struct {
-		Hostname    string      `json:"hostname"`
-		IP          []net.IP    `json:"ip"`
-		Host        string      `json:"host"`
-		URL         string      `json:"url"`
-		Method      string      `json:"method"`
-		Headers     http.Header `json:"headers"`
-		RemoteAddr  string      `json:"remote_addr"`
-		UserAgent   string      `json:"user_agent"`
-		ContentType string      `json:"content_type"`
+		Hostname   string      `json:"hostname"`
+		IP         []net.IP    `json:"ip"`
+		Host       string      `json:"host"`
+		URL        string      `json:"url"`
+		Method     string      `json:"method"`
+		Headers    http.Header `json:"headers"`
+		RemoteAddr string      `json:"remote_addr"`
+		UserAgent  string      `json:"user_agent"`
 	}
 
 	hostname, err := os.Hostname()
@@ -52,15 +52,14 @@ func (s *server) whoamiHandler() http.HandlerFunc {
 		}
 
 		resp := &Response{
-			Hostname:    hostname,
-			IP:          localIPs,
-			Host:        r.Host,
-			URL:         r.URL.String(),
-			Method:      r.Method,
-			Headers:     r.Header.Clone(),
-			RemoteAddr:  remoteAddr,
-			UserAgent:   r.UserAgent(),
-			ContentType: "application/json",
+			Hostname:   hostname,
+			IP:         localIPs,
+			Host:       r.Host,
+			URL:        r.URL.String(),
+			Method:     r.Method,
+			Headers:    r.Header.Clone(),
+			RemoteAddr: remoteAddr,
+			UserAgent:  r.UserAgent(),
 		}
 
 		render.JSON(w, r, resp)
