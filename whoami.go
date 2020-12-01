@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 )
 
@@ -17,8 +18,9 @@ func (s *server) whoamiHandler() http.HandlerFunc {
 		URL        string      `json:"url"`
 		Method     string      `json:"method"`
 		Headers    http.Header `json:"headers"`
-		RemoteAddr string      `json:"remote_addr"`
 		UserAgent  string      `json:"user_agent"`
+		RemoteAddr string      `json:"remote_addr"`
+		RequestID  string      `json:"request_id"`
 	}
 
 	hostname, err := os.Hostname()
@@ -55,13 +57,15 @@ func (s *server) whoamiHandler() http.HandlerFunc {
 			Hostname:   hostname,
 			IP:         localIPs,
 			Host:       r.Host,
-			URL:        r.URL.String(),
+			URL:        r.RequestURI,
 			Method:     r.Method,
 			Headers:    r.Header.Clone(),
-			RemoteAddr: remoteAddr,
 			UserAgent:  r.UserAgent(),
+			RemoteAddr: remoteAddr,
+			RequestID:  middleware.GetReqID(r.Context()),
 		}
 
+		render.Status(r, 200)
 		render.JSON(w, r, resp)
 	}
 }

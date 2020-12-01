@@ -1,13 +1,11 @@
 package main
 
 import (
-	"net/http"
-
+	chilogger "github.com/766b/chi-logger"
 	chiprometheus "github.com/766b/chi-prometheus"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -26,15 +24,14 @@ func (s *server) getRouter() *chi.Mux {
 		cors.Handler,
 		middleware.RealIP,
 		middleware.Recoverer,
-		middleware.DefaultLogger,
+		middleware.RequestID,
+		middleware.Heartbeat("/ping"),
 		chiprometheus.NewMiddleware("whoami"),
+		chilogger.NewLogrusMiddleware("router", log),
 	)
 
 	r.Group(func(telemetry chi.Router) {
 		telemetry.Get("/metrics", promhttp.Handler().ServeHTTP)
-		telemetry.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-			render.PlainText(w, r, `{"ping":"pong"}`)
-		})
 	})
 
 	r.Route("/", func(api chi.Router) {
