@@ -8,6 +8,7 @@ on: push
 
 jobs:
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v3
@@ -20,7 +21,7 @@ jobs:
         with:
           version: latest
 
-  trivy:
+  trivy-fs:
     name: Trivy Scan
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +31,19 @@ jobs:
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs,repo,config'
+          scan-type: 'fs'
+          scan-ref: '.'
+          trivy-config: trivy.yaml
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'repo'
+          scan-ref: '.'
+          trivy-config: trivy.yaml
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
           scan-ref: '.'
           trivy-config: trivy.yaml
 
