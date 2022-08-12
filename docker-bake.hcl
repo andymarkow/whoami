@@ -1,5 +1,5 @@
 variable "DOCKER_IMAGE_REPOSITORY" {
-  default = "registry.gitlab.com/krezz/whoami"
+  default = "ghcr.com/andyglass/whoami"
 }
 
 variable "DOCKER_IMAGE_TAG" {
