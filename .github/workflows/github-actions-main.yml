@@ -1,19 +1,27 @@
-name: Docker Image CI
+name: Base Pipeline
 
-on: [push]
+on: push
   # push:
   #   branches: [ $default-branch ]
   # pull_request:
   #   branches: [ $default-branch ]
 
 jobs:
-
-  build:
-
+  lint:
     runs-on: ubuntu-latest
-
+    container: golangci/golangci-lint:v1.47-alpine
     steps:
     - uses: actions/checkout@v3
+    - name: Check golangci-lint version
+      run: golangci-lint --version
+    - name: Clean golangci-lint cache
+      run: golangci-lint cache clean
+    - name: Run golangci-lint
+      run: golangci-lint run
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
     - name: Get env vars
       run: env
     - run: docker version && docker buildx version
