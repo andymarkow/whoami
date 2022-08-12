@@ -50,20 +50,22 @@ jobs:
     needs: [trivy-scan]
     steps:
     - name: Get env vars
-      run: env
+      run: env && echo "${{ github.repository }}"
     - name: Checkout source code
       uses: actions/checkout@v3
-    - name: Log in to the Container registry
-      run: docker login -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}" ${DOCKER_REGISTRY}
-    - name: Log in to the Container registry
-      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+    # - name: Log in to the Container registry
+    #   run: docker login -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}" ${DOCKER_REGISTRY}
+    - name: Login to Docker registry
+      uses: docker/login-action@v2
       with:
-        registry: ${{ env.REGISTRY }}
+        registry: ${{ env.DOCKER_REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Check docker and buildx versions
       run: docker version && docker buildx version
     - name: Build the Docker image
+      env:
+        DOCKER_IMAGE_TAG: "${{ github.sha }}"
       run: |
         docker buildx create --use
-        docker buildx bake
+        docker buildx bake --push
