@@ -6,7 +6,7 @@ variable "DOCKER_IMAGE_TAG" {
   default = "local"
 }
 
-variable "RELEASE" {
+variable "IS_RELEASE" {
   default = ""
 }
 
@@ -20,7 +20,7 @@ target "whoami" {
   platforms  = ["linux/amd64", "linux/arm64"]
   tags = [
     "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}",
-    notequal("", CI_COMMIT_TAG) ? "${DOCKER_IMAGE_REPOSITORY}:latest" : "",
+    notequal("", IS_RELEASE) ? "${DOCKER_IMAGE_REPOSITORY}:latest" : "",
   ]
   args = {
     APP_VERSION = "${DOCKER_IMAGE_TAG}"

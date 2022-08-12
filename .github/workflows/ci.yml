@@ -26,10 +26,32 @@ jobs:
         with:
           version: latest
 
+  build:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    needs: [trivy-scan]
+    steps:
+    - name: Get env vars
+      run: ${DOCKER_IMAGE_REPOSITORY} && env
+    - name: Checkout source code
+      uses: actions/checkout@v3
+    - name: Login to Docker registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check docker and buildx versions
+      run: docker version && docker buildx version
+    - name: Build the Docker image
+      run: |
+        docker buildx create --use
+        docker buildx bake --push
+
   trivy-scan:
     name: Trivy Scan
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: [build]
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
@@ -46,29 +68,7 @@ jobs:
           scan-ref: "."
           trivy-config: trivy.yaml
           ignore-unfixed: true
-
-  build:
-    name: Build Docker
-    runs-on: ubuntu-latest
-    needs: [trivy-scan]
-    steps:
-    - name: Get env vars
-      run: env
-    - name: Checkout source code
-      uses: actions/checkout@v3
-    - name: Login to Docker registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ env.DOCKER_REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Check docker and buildx versions
-      run: docker version && docker buildx version
-    - name: Build the Docker image
-      run: |
-        docker buildx create --use
-        docker buildx bake --push
-
+  
   trivy-docker:
     name: Trivy Scan Docker
     runs-on: ubuntu-latest
