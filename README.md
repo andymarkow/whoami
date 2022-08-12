@@ -1,4 +1,9 @@
-# Whoami Json web server
+# whoami
+
+![Docker Automated](https://img.shields.io/docker/automated/krezz/whoami)
+![Docker Pulls](https://img.shields.io/docker/pulls/krezz/whoami)
+![Docker Tag](https://img.shields.io/docker/v/krezz/whoami?label=docker%20tag)
+![Docker Image Size](https://img.shields.io/docker/image-size/krezz/whoami/latest)
 
 
 ## Routes
