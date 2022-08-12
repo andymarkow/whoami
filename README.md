@@ -1,6 +1,6 @@
 # whoami
 
-![Build](https://img.shields.io/github/workflow/status/andyglass/whoami/ci/develop?label=build)
+[![ci](https://github.com/andyglass/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andyglass/whoami/actions/workflows/ci.yml)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/andyglass/whoami?label=go)
 ![Docker Automated](https://img.shields.io/docker/automated/krezz/whoami)
 ![Docker Pulls](https://img.shields.io/docker/pulls/krezz/whoami)
