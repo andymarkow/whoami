@@ -2,7 +2,6 @@
 
 [![ci](https://github.com/andyglass/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andyglass/whoami/actions/workflows/ci.yml)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/andyglass/whoami?label=go)
-![Docker Automated](https://img.shields.io/docker/automated/krezz/whoami)
 ![Docker Pulls](https://img.shields.io/docker/pulls/krezz/whoami)
 ![Docker Tag](https://img.shields.io/docker/v/krezz/whoami?label=docker%20tag)
 ![Docker Image Size](https://img.shields.io/docker/image-size/krezz/whoami/latest)

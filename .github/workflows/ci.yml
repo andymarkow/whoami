@@ -50,7 +50,7 @@ jobs:
         id: uuid
         uses: filipstefansson/uuid-action@v1
         with:
-          name: ${{ gihub.sha }}
+          name: ${{ github.sha }}
       - name: Build Docker image
         env:
           DOCKER_IMAGE_REPOSITORY: "ttl.sh/${{ steps.uuid.outputs.uuid }}"
