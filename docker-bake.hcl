@@ -1,12 +1,12 @@
 variable "DOCKER_IMAGE_REPOSITORY" {
-  default = "ghcr.com/andyglass/whoami"
+  default = "ghcr.io/andyglass/whoami"
 }
 
 variable "DOCKER_IMAGE_TAG" {
   default = "local"
 }
 
-variable "CI_COMMIT_TAG" {
+variable "RELEASE" {
   default = ""
 }
 
