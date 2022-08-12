@@ -17,7 +17,7 @@ jobs:
     - name: Clean golangci-lint cache
       run: golangci-lint cache clean
     - name: Run golangci-lint
-      run: golangci-lint run
+      run: ls -lha && golangci-lint run -buildvcs=false
 
   build:
     runs-on: ubuntu-latest
