@@ -8,7 +8,7 @@ on: push
 
 env:
   DOCKER_REGISTRY: ghcr.io
-  DOCKER_IMAGE_REPOSITORY: "${{ env.DOCKER_REGISTRY }}/${{ github.repository }}"
+  DOCKER_IMAGE_REPOSITORY: "$DOCKER_REGISTRY/${{ github.repository }}"
   DOCKER_IMAGE_TAG: "${{ github.sha }}"
 
 jobs:
