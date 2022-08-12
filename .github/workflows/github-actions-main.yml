@@ -7,20 +7,22 @@ on: push
   #   branches: [ $default-branch ]
 
 jobs:
-  lint:
+  golangci:
+    name: lint
     runs-on: ubuntu-latest
-    container: golangci/golangci-lint:v1.47-alpine
     steps:
-    - uses: actions/checkout@v3
-    - name: Check golangci-lint version
-      run: golangci-lint --version
-    - name: Clean golangci-lint cache
-      run: golangci-lint cache clean
-    - name: Run golangci-lint
-      run: ls -lha && golangci-lint run -buildvcs=false
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - uses: actions/checkout@v3
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
 
   build:
     runs-on: ubuntu-latest
+    needs: [golangci]
     steps:
     - name: Get env vars
       run: env
