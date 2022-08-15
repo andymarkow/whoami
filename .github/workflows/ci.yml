@@ -8,7 +8,7 @@ on: push
 
 env:
   DOCKER_REGISTRY: ttl.sh
-  DOCKER_IMAGE_TAG: "5m"
+  DOCKER_IMAGE_TAG: "1h"
   # DOCKER_IMAGE_REPOSITORY: "ghcr.io/${{ github.repository }}"
   # DOCKER_IMAGE_TAG: "${{ github.sha }}"
 
@@ -112,7 +112,7 @@ jobs:
 
 
   dockerhub:
-    name: DockerHub Publish
+    name: DockerHub Push
     runs-on: ubuntu-latest
     needs:
       - trivy-fs
