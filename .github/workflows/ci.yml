@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.19
       - name: Checkout source code
         uses: actions/checkout@v3
       - name: Run golangci-lint
@@ -119,6 +119,7 @@ jobs:
       - trivy-config
       - trivy-image
     env:
+      IS_RELEASE: "true"
       DOCKER_IMAGE_REPOSITORY: "${{ github.repository }}"
     steps:
       - name: Checkout source code

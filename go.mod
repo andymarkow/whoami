@@ -1,6 +1,6 @@
 module github.com/andyglass/whoami
 
-go 1.18
+go 1.19
 
 require (
 	github.com/andyglass/echo-prometheus v0.0.1
