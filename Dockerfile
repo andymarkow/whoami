@@ -1,6 +1,6 @@
 FROM --platform=$BUILDPLATFORM golang:1.19-alpine as builder
 
-ARG APP_VERSION="0.0.1"
+ARG APP_VERSION
 ARG TARGETOS
 ARG TARGETARCH
 
