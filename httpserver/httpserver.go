@@ -38,6 +38,23 @@ func New(cfg *config.Config) *WebServer {
 	}
 }
 
+// Middleware with delayed response
+func responceDelayMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		delayQuery := c.Request().URL.Query().Get("delay")
+		if delayQuery == "" {
+			return next(c)
+		}
+		delay, err := time.ParseDuration(delayQuery)
+		if err != nil {
+			logger.App.Error("Delay duration provided but could not be parsed from query param")
+			return next(c)
+		}
+		time.Sleep(delay)
+		return next(c)
+	}
+}
+
 func newRouter(version string) *echo.Echo {
 	e := echo.New()
 	e.HidePort = true
@@ -75,32 +92,16 @@ func newRouter(version string) *echo.Echo {
 			return uuid.New().String()
 		},
 	}))
-	// Middleware with delayed response
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			delayQuery := c.Request().URL.Query().Get("delay")
-			if delayQuery == "" {
-				return next(c)
-			}
-			delay, err := time.ParseDuration(delayQuery)
-			if err != nil {
-				logger.App.Error("Delay duration provided but could not be parsed from query param")
-				return next(c)
-			}
-			time.Sleep(delay)
-			return next(c)
-		}
-	})
 
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	e.GET("/version", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf(`{"version":"%s"}`, version))
-	})
+	}, responceDelayMiddleware)
 
 	e.GET("/healthz", func(c echo.Context) error {
 		return c.String(healthzStatus, fmt.Sprintf(`{"status":"%d"}`, healthzStatus))
-	})
+	}, responceDelayMiddleware)
 
 	e.POST("/healthz", func(c echo.Context) error {
 		byteContent, err := io.ReadAll(c.Request().Body)
@@ -118,10 +119,10 @@ func newRouter(version string) *echo.Echo {
 
 	h := handlers.New()
 
-	api := e.Group("/api")
+	api := e.Group("/api", responceDelayMiddleware)
 	api.Any("*", h.WhoamiJSON)
 
-	plain := e.Group("/")
+	plain := e.Group("/", responceDelayMiddleware)
 	plain.Any("*", h.WhoamiPlain)
 
 	return e

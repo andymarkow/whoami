@@ -24,11 +24,24 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 | `WHOAMI_LOG_LEVEL` | `info` | `false` | Web server log level. Values: [debug,info,warn,error,fatal] |
 | `WHOAMI_LOG_URL_EXCLUDES` | `/favicon.ico,/healthz,/metrics` | `false` | Comma-separated list of urls to exclude from access log |
 
-## Routes
 
-- Path: `GET /*`
-  
-  Description: Get server info in plain text format
+## Usage
+
+### Query parameters
+
+- Optional param: `delay=0ms`
+
+  Description: Sets time to wait for returning response in Go duration format (eg. 10ms, 1s)
+
+- Optional param: `status=200`
+
+  Description: Sets server response HTTP code (eg. 200, 418)
+
+### Routes
+
+- | Method | Path | Params | Description |
+  | --- | --- | --- | --- |
+  | `ANY` | `/*` | `?[delay=0ms]&[status=200]` | Get server info in plain text format |
 
   Request:
   ```bash
@@ -50,7 +63,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 
 - | Method | Path | Params | Description |
   | --- | --- | --- | --- |
-  | `GET` | `/api*` | `[?pretty]` | Get server info in JSON format (use `pretty` to print formatted) |
+  | `ANY` | `/api*` | `?[delay=0ms]&[status=200]&[pretty]` | Get server info in JSON format (use `pretty` to print formatted) |
   
   Request:
   ```bash
@@ -61,28 +74,74 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 	```json
   {
     "hostname": "my.local",
-    "ip": [
-      "192.168.1.1",
-    ],
     "host": "localhost",
     "url": "/api?pretty",
-    "params": {
-      "pretty": [
-        ""
-      ]
-    },
     "method": "GET",
-    "proto": "HTTP/1.1",
-    "headers": {
-      "Accept": [
-        "*/*"
-      ],
-      "User-Agent": [
-        "curl/7.79.1"
-      ]
-    },
+    ...
     "user_agent": "curl/7.79.1",
     "remote_addr": "127.0.0.1:50061",
     "request_id": "0d5ab77f-c47c-46f3-88b4-fbd56d854007"
   }
+	```
+
+- | Method | Path | Params | Description |
+  | --- | --- | --- | --- |
+  | `GET` | `/version` | `?[delay=0ms]` | Get server version info |
+  
+  Request:
+  ```bash
+  curl -Ss -X GET localhost/version
+  ```
+
+	Response:
+	```json
+  {"version":"0.0.1"}
+	```
+
+- | Method | Path | Params | Description |
+  | --- | --- | --- | --- |
+  | `GET` | `/healthz` | `?[delay=0ms]` | Get server healthcheck status |
+  
+  Request:
+  ```bash
+  curl -Ss -X GET localhost/healthz
+  ```
+
+	Response:
+	```json
+  {"status":"200"}
+	```
+
+- | Method | Path | Description |
+  | --- | --- | --- |
+  | `POST` | `/healthz` | Set server healthcheck status |
+  
+  Payload: Valid HTTP status code in range `200..599`
+
+  Request:
+  ```bash
+  curl -Ss -X POST -d '418' localhost/healthz
+  ```
+
+	Response: NoContent with status `204` on success
+
+- | Method | Path | Description |
+  | --- | --- | --- |
+  | `GET` | `/metrics` | Get server metrics in Prometheus format |
+  
+  Request:
+  ```bash
+  curl -Ss -X GET localhost/metrics
+  ```
+
+	Response:
+	```
+  ...
+  echo_http_requests_total{method="GET",path="/healthz",status="200"} 2
+  echo_http_requests_total{method="GET",path="/healthz",status="418"} 4
+  echo_http_requests_total{method="POST",path="/healthz",status="204"} 2
+  echo_http_requests_total{method="POST",path="/healthz",status="400"} 4
+  whoami_build_info{version="0.0.1"} 1
+  whoami_runtime_info{arch="arm64",go_version="go1.19",os="darwin"} 1
+  ...
 	```
