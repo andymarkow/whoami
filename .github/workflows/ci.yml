@@ -7,7 +7,7 @@ on: push
   #   branches: [ $default-branch ]
 
 env:
-  DOCKER_REGISTRY: ttl.sh
+  DOCKER_REGISTRY: "ttl.sh"
   DOCKER_IMAGE_TAG: "1h"
   # DOCKER_IMAGE_REPOSITORY: "ghcr.io/${{ github.repository }}"
   # DOCKER_IMAGE_TAG: "${{ github.sha }}"
@@ -39,12 +39,6 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
-      # - name: Login to Docker registry
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ${{ env.DOCKER_REGISTRY }}
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
       - name: Check docker and buildx versions
         run: docker version && docker buildx version
       - name: Generate uuid
@@ -111,7 +105,32 @@ jobs:
           ignore-unfixed: true
 
 
-  dockerhub:
+  github-registry:
+    name: Github Push
+    runs-on: ubuntu-latest
+    needs:
+      - trivy-fs
+      - trivy-config
+      - trivy-image
+    env:
+      IS_RELEASE: "true"
+      DOCKER_IMAGE_REPOSITORY: "ghcr.io/${{ github.repository }}"
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Login to Docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Docker image
+        run: |
+          docker buildx create --use
+          # docker buildx bake --push
+
+
+  dockerhub-registry:
     name: DockerHub Push
     runs-on: ubuntu-latest
     needs:

@@ -1,6 +1,8 @@
 # whoami
 
 [![ci](https://github.com/andyglass/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andyglass/whoami/actions/workflows/ci.yml)
+![Release](https://img.shields.io/github/v/release/andyglass/whoami?display_name=release&include_prereleases&sort=date)
+![License](https://img.shields.io/github/license/andyglass/whoami)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/andyglass/whoami?label=go)
 ![Docker Pulls](https://img.shields.io/docker/pulls/andyglass/whoami)
 ![Docker Tag](https://img.shields.io/docker/v/andyglass/whoami?label=docker%20tag)
