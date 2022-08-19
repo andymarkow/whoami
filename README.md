@@ -128,6 +128,7 @@ helm install whoami andyglass/whoami
   ```
 
 	Response: NoContent with status `204` on success
+  
   ---
 
 - | Method | Path | Params | Description |
