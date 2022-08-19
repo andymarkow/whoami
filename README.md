@@ -138,9 +138,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 	```
   ...
   echo_http_requests_total{method="GET",path="/healthz",status="200"} 2
-  echo_http_requests_total{method="GET",path="/healthz",status="418"} 4
   echo_http_requests_total{method="POST",path="/healthz",status="204"} 2
-  echo_http_requests_total{method="POST",path="/healthz",status="400"} 4
   whoami_build_info{version="0.0.1"} 1
   whoami_runtime_info{arch="arm64",go_version="go1.19",os="darwin"} 1
   ...
