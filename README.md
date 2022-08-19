@@ -18,6 +18,19 @@ To start docker container run:
 ```bash
 docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 ```
+
+### Helm
+
+Add Helm chart repository:
+```bash
+helm repo add andyglass https://andyglass.github.com/helm-charts
+```
+
+Install Helm chart:
+```bash
+helm install whoami andyglass/whoami
+```
+
 ### Environment variables
 
 | Environment variable | Default value | Required | Description |
@@ -62,6 +75,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 	RemoteAddr: [::1]:49995
 	RequestID: 29a11732-d622-4c02-8366-4d834954c5aa
 	```
+  ---
 
 - | Method | Path | Params | Description |
   | --- | --- | --- | --- |
@@ -85,6 +99,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
     "request_id": "0d5ab77f-c47c-46f3-88b4-fbd56d854007"
   }
 	```
+  ---
 
 - | Method | Path | Params | Description |
   | --- | --- | --- | --- |
@@ -99,6 +114,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 	```json
   {"status":"200"}
 	```
+  ---
 
 - | Method | Path | Description |
   | --- | --- | --- |
@@ -112,6 +128,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
   ```
 
 	Response: NoContent with status `204` on success
+  ---
 
 - | Method | Path | Params | Description |
   | --- | --- | --- | --- |
@@ -126,6 +143,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
 	```json
   {"version":"0.0.1"}
 	```
+  ---
 
 - | Method | Path | Description |
   | --- | --- | --- |
