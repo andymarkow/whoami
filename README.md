@@ -67,7 +67,7 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
   
   Request:
   ```bash
-  curl -Ss -X GET localhost/api?pretty
+  curl -Ss -X GET localhost/api\?pretty
   ```
 
 	Response:
@@ -82,20 +82,6 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
     "remote_addr": "127.0.0.1:50061",
     "request_id": "0d5ab77f-c47c-46f3-88b4-fbd56d854007"
   }
-	```
-
-- | Method | Path | Params | Description |
-  | --- | --- | --- | --- |
-  | `GET` | `/version` | `?[delay=0ms]` | Get server version info |
-  
-  Request:
-  ```bash
-  curl -Ss -X GET localhost/version
-  ```
-
-	Response:
-	```json
-  {"version":"0.0.1"}
 	```
 
 - | Method | Path | Params | Description |
@@ -124,6 +110,20 @@ docker run --rm --name=whoami -p 80:8080 andyglass/whoami
   ```
 
 	Response: NoContent with status `204` on success
+
+- | Method | Path | Params | Description |
+  | --- | --- | --- | --- |
+  | `GET` | `/version` | `?[delay=0ms]` | Get server version info |
+  
+  Request:
+  ```bash
+  curl -Ss -X GET localhost/version
+  ```
+
+	Response:
+	```json
+  {"version":"0.0.1"}
+	```
 
 - | Method | Path | Description |
   | --- | --- | --- |
