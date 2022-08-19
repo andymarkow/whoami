@@ -3,7 +3,7 @@ package httpserver
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -103,7 +103,7 @@ func newRouter(version string) *echo.Echo {
 	})
 
 	e.POST("/healthz", func(c echo.Context) error {
-		byteContent, err := ioutil.ReadAll(c.Request().Body)
+		byteContent, err := io.ReadAll(c.Request().Body)
 		if err != nil || len(byteContent) == 0 {
 			return c.String(http.StatusBadRequest, "Wrong POST request content or empty body")
 		}
