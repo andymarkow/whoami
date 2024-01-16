@@ -17,6 +17,7 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
+	"github.com/urfave/negroni"
 )
 
 var healthStatus = 200
@@ -107,12 +108,27 @@ func useMiddleware(next http.Handler, withAccessLog bool) http.Handler {
 			w.Header().Add("X-Request-ID", requestID)
 		}
 
-		next.ServeHTTP(w, r)
-
-		reqDuration := time.Since(startTime)
+		rw := negroni.NewResponseWriter(w)
+		next.ServeHTTP(rw, r)
 
 		if withAccessLog {
-			fmt.Printf("%s %s %s %s %s %s\n", r.Method, r.RequestURI, r.Proto, r.RemoteAddr, r.UserAgent(), reqDuration.String())
+			fmt.Printf(
+				`{"time":"%s","request_id":"%s","remote_ip":"%s",`+
+					`"host":"%s","method":"%s","uri":"%s","status":%d,`+
+					`"proto":"%s","user_agent":"%s","duration":"%s","bytes_in":%d,"bytes_out":%d}`+"\n",
+				time.Now().Format("2006-01-02T15:04:05.000Z"),
+				requestID,
+				r.RemoteAddr,
+				r.Host,
+				r.Method,
+				r.RequestURI,
+				rw.Status(),
+				r.Proto,
+				r.UserAgent(),
+				time.Since(startTime).String(),
+				r.ContentLength,
+				rw.Size(),
+			)
 		}
 	})
 }
@@ -159,6 +175,7 @@ func healthHandler() http.Handler {
 
 func dataHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO: implement
 	})
 }
 

@@ -1,14 +1,16 @@
 # Go Whoami Web Server
 
-[![ci](https://github.com/andyglass/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andyglass/whoami/actions/workflows/ci.yml)
-![Release](https://img.shields.io/github/v/release/andyglass/whoami?display_name=release&include_prereleases&sort=date)
-![License](https://img.shields.io/github/license/andyglass/whoami)
-![Go Version](https://img.shields.io/github/go-mod/go-version/andyglass/whoami?label=go)
-![Docker Pulls](https://img.shields.io/docker/pulls/andyglass/whoami)
-![Docker Tag](https://img.shields.io/docker/v/andyglass/whoami?label=docker%20tag)
-![Docker Image Size](https://img.shields.io/docker/image-size/andyglass/whoami/latest)
+[![ci](https://github.com/andymarkow/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andymarkow/whoami/actions/workflows/ci.yml)
+[![Go](https://img.shields.io/static/v1?label=go&message=v1.21%2b&color=blue&logo=go)](#)
+![Release](https://img.shields.io/github/v/release/andymarkow/whoami?display_name=release&include_prereleases&sort=date)
+![License](https://img.shields.io/github/license/andymarkow/whoami)
+![Docker Pulls](https://img.shields.io/docker/pulls/andymarkow/whoami)
+![Docker Tag](https://img.shields.io/docker/v/andymarkow/whoami?label=docker%20tag)
+![Docker Image Size](https://img.shields.io/docker/image-size/andymarkow/whoami/latest)
 
-Go webserver which returns information about webserver and HTTP context.
+Simple Go web server which returns information about web server and HTTP context.
+Can be used for development, testing and debugging purposes.
+
 
 ## Install
 

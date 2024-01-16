@@ -33,7 +33,7 @@ func NewConfig() *Config {
 	flag.StringVar(&cfg.ServerPort, "port", getEnv("WHOAMI_PORT", "8080"), "Web server port number")
 	flag.StringVar(&cfg.LogFormatter, "log-formatter", getEnv("WHOAMI_LOG_FORMATTER", "json"), "Log formatter: 'fmt' or 'json'")
 	flag.StringVar(&cfg.LogLevel, "log-level", getEnv("WHOAMI_LOG_LEVEL", "info"), "Log level: 'error', 'warn', 'error', 'debug'")
-	flag.BoolVar(&cfg.AccessLogEnabled, "access-log", getEnv("WHOAMI_ACCESS_LOG", "false") == "true", "Enable access log")
+	flag.BoolVar(&cfg.AccessLogEnabled, "access-log", getEnv("WHOAMI_ACCESS_LOG", "true") == "true", "Enable access log")
 
 	flag.Parse()
 

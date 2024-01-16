@@ -26,6 +26,10 @@ tidy:
 build:
 	go build -x -o ./whoami .
 
+.PHONY: docker
+docker:
+	docker build -f Dockerfile -t whoami:local .
+
 .PHONY: lint
 lint:
 	docker run --rm --name golangci-lint -v `pwd`:/workspace -w /workspace golangci/golangci-lint:latest-alpine golangci-lint run --issues-exit-code 1
