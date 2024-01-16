@@ -17,7 +17,10 @@ group "default" {
 target "whoami" {
   context    = "."
   dockerfile = "Dockerfile"
-  platforms  = ["linux/amd64", "linux/arm64"]
+  platforms  = [
+    "linux/amd64",
+    "linux/arm64",
+  ]
   tags = [
     "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}",
     notequal("", IS_RELEASE) ? "${DOCKER_IMAGE_REPOSITORY}:latest" : "",

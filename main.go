@@ -1,31 +1,54 @@
 package main
 
 import (
+	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/andyglass/whoami/config"
-	"github.com/andyglass/whoami/httpserver"
-	"github.com/andyglass/whoami/logger"
-	"github.com/andyglass/whoami/telemetry"
+	"github.com/andymarkow/whoami/internal/config"
+	"github.com/andymarkow/whoami/internal/httpserver"
+	"github.com/andymarkow/whoami/internal/logger"
+	"github.com/andymarkow/whoami/internal/telemetry"
 )
 
 var (
-	Version = "0.0.1"
+	Version = "0.0.0-dev"
 )
 
 func main() {
-	cfg := config.New(Version)
-	logger.App = logger.New(cfg.LogLevel)
 	telemetry.Init(Version)
 
-	webserver := httpserver.New(cfg)
-	go webserver.Start()
+	cfg := config.NewConfig()
 
+	srv := httpserver.NewHTTPServer(cfg)
+
+	l, err := logger.NewLogger(&logger.Config{
+		LogFormatter: cfg.LogFormatter,
+		LogLevel:     cfg.LogLevel,
+	})
+	if err != nil {
+		panic(fmt.Errorf("NewLogger: %w", err))
+	}
+	slog.SetDefault(l)
+
+	go func() {
+		slog.Info(fmt.Sprintf("Starting http server on address %s:%s", cfg.ServerHost, cfg.ServerPort))
+		if err := srv.Start(); err != nil {
+			slog.Error("srv.Start: %w", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
 	<-quit
-	webserver.Shutdown()
+
+	slog.Info("Http server graceful shutdown initiated")
+	if err := srv.Shutdown(); err != nil {
+		slog.Error("srv.Shutdown: %w", err)
+		os.Exit(1)
+	}
 }

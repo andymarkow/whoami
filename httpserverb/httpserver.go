@@ -1,18 +1,18 @@
-package httpserver
+package httpserverb
 
 import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	echoprom "github.com/andyglass/echo-prometheus"
-	"github.com/andyglass/whoami/config"
-	"github.com/andyglass/whoami/httpserver/handlers"
-	"github.com/andyglass/whoami/logger"
+	"github.com/andymarkow/whoami/config"
+	"github.com/andymarkow/whoami/httpserverb/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -47,7 +47,7 @@ func responceDelayMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		delay, err := time.ParseDuration(delayQuery)
 		if err != nil {
-			logger.App.Error("Delay duration provided but could not be parsed from query param")
+			// logger.App.Error("Delay duration provided but could not be parsed from query param")
 			return next(c)
 		}
 		time.Sleep(delay)
@@ -131,18 +131,18 @@ func newRouter(version string) *echo.Echo {
 func (w *WebServer) Start() {
 	web := w.router
 	web.Server.Addr = w.cfg.ServerAddr
-	logger.App.Infof("Starting http server on %s", w.cfg.ServerAddr)
+	// logger.App.Infof("Starting http server on %s", w.cfg.ServerAddr)
 	if err := web.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.App.Fatal(errors.WithStack(err))
+		log.Fatal(errors.WithStack(err))
 	}
 }
 
 func (w *WebServer) Shutdown() {
-	logger.App.Info("Http server graceful shutdown initiated")
+	// logger.App.Info("Http server graceful shutdown initiated")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := w.router.Server.Shutdown(ctx); err != nil {
-		logger.App.Fatalf("Http server graceful shutdown failed: %+v", err)
+		log.Fatalf("Http server graceful shutdown failed: %+v", err)
 	}
 }

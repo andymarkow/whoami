@@ -1,4 +1,4 @@
-# whoami
+# Go Whoami Web Server
 
 [![ci](https://github.com/andyglass/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andyglass/whoami/actions/workflows/ci.yml)
 ![Release](https://img.shields.io/github/v/release/andyglass/whoami?display_name=release&include_prereleases&sort=date)
@@ -8,7 +8,7 @@
 ![Docker Tag](https://img.shields.io/docker/v/andyglass/whoami?label=docker%20tag)
 ![Docker Image Size](https://img.shields.io/docker/image-size/andyglass/whoami/latest)
 
-Golang Webserver which returns information about webserver and HTTP context
+Go webserver which returns information about webserver and HTTP context.
 
 ## Install
 

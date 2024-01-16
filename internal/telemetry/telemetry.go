@@ -8,6 +8,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+// Init initializes the application metrics with the provided version.
+//
+// Parameter:
+// - version: a string representing the version of the application.
 func Init(version string) {
 	promBuildInfo := promauto.NewGauge(
 		prometheus.GaugeOpts{

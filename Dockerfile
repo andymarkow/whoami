@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.19-alpine as builder
+FROM --platform=$BUILDPLATFORM golang:1.21-alpine as builder
 
 ARG APP_VERSION
 ARG TARGETOS
@@ -21,8 +21,8 @@ RUN apk update &&\
     go build -v -a -ldflags "-X main.Version=${APP_VERSION}" -o /build/whoami .
 
 
-FROM scratch
+FROM alpine:3.19
 
-COPY --from=builder /build/whoami /whoami
+COPY --from=builder /build/whoami /usr/local/bin/whoami
 
-CMD ["/whoami"]
+CMD ["/usr/local/bin/whoami"]
