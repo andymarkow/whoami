@@ -3,7 +3,7 @@ variable "DOCKER_IMAGE_REPOSITORY" {
 }
 
 variable "DOCKER_IMAGE_TAG" {
-  default = "local"
+  default = "dev"
 }
 
 variable "IS_RELEASE" {

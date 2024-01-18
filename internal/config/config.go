@@ -18,6 +18,9 @@ type Config struct {
 	ReadTimeout        time.Duration
 	ReadHeaderTimeout  time.Duration
 	WriteTimeout       time.Duration
+	TLSCrtFile         string
+	TLSKeyFile         string
+	TLSCAFile          string
 }
 
 // NewConfig creates a new Config object with default values.
@@ -39,11 +42,14 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&cfg.ServerPort, "port", getEnv("WHOAMI_PORT", "8080"), "Web server port number")
 	flag.StringVar(&cfg.LogFormatter, "log-formatter", getEnv("WHOAMI_LOG_FORMATTER", "json"), "Log formatter: 'fmt' or 'json'")
 	flag.StringVar(&cfg.LogLevel, "log-level", getEnv("WHOAMI_LOG_LEVEL", "info"), "Log level: 'error', 'warn', 'error', 'debug'")
-	flag.BoolVar(&cfg.AccessLogEnabled, "access-log", getEnv("WHOAMI_ACCESS_LOG", "true") == "true", "Enable access log")
+	flag.BoolVar(&cfg.AccessLogEnabled, "access-log", getEnv("WHOAMI_ACCESS_LOG", "false") == "true", "Enable access log")
 	flag.StringVar(&accessLogSkipPaths, "access-log-skip-paths", getEnv("WHOAMI_ACCESS_LOG_SKIP_PATHS", ""), "Comma separated list of URL paths to skip in access log")
 	flag.StringVar(&readTimeout, "read-timeout", getEnv("WHOAMI_READ_TIMEOUT", "0s"), "Web server read timeout")
 	flag.StringVar(&readHeaderTimeout, "read-header-timeout", getEnv("WHOAMI_READ_HEADER_TIMEOUT", "0s"), "Web server read header timeout")
 	flag.StringVar(&writeTimeout, "write-timeout", getEnv("WHOAMI_WRITE_TIMEOUT", "0s"), "Web server write timeout")
+	flag.StringVar(&cfg.TLSCrtFile, "tls-crt", getEnv("WHOAMI_TLS_CRT_FILE", "./tls.crt"), "TLS certificate file")
+	flag.StringVar(&cfg.TLSKeyFile, "tls-key", getEnv("WHOAMI_TLS_KEY_FILE", "./tls.key"), "TLS private key file")
+	flag.StringVar(&cfg.TLSCAFile, "tls-ca", getEnv("WHOAMI_TLS_CA_FILE", ""), "TLS CA certificate file to enable mTLS authentication")
 
 	flag.Parse()
 

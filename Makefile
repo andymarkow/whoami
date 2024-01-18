@@ -26,8 +26,8 @@ tidy:
 build:
 	go build -x -o ./whoami .
 
-.PHONY: docker
-docker:
+.PHONY: image
+image:
 	docker build -f Dockerfile -t whoami:local .
 
 .PHONY: lint

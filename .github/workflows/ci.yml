@@ -174,7 +174,8 @@ jobs:
       - trivy-image
     env:
       IS_RELEASE: "true"
-      DOCKER_IMAGE_REPOSITORY: "${{ github.repository }}"
+      # DOCKER_IMAGE_REPOSITORY: "${{ github.repository }}"
+      DOCKER_IMAGE_REPOSITORY: "andymarkow/whoami"
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3

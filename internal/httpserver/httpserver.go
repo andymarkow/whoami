@@ -34,7 +34,9 @@ const (
 var healthStatus = 200
 
 type HTTPServer struct {
-	server *http.Server
+	server      *http.Server
+	tlsCertFile string
+	tlsKeyFile  string
 }
 
 type jsonResponse struct {
@@ -93,7 +95,9 @@ func NewHTTPServer(cfg *config.Config) *HTTPServer {
 	}
 
 	return &HTTPServer{
-		server: srv,
+		server:      srv,
+		tlsCertFile: cfg.TLSCrtFile,
+		tlsKeyFile:  cfg.TLSKeyFile,
 	}
 }
 
@@ -104,6 +108,14 @@ func NewHTTPServer(cfg *config.Config) *HTTPServer {
 func (s *HTTPServer) Start() error {
 	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("server.ListenAndServe: %w", err)
+	}
+
+	return nil
+}
+
+func (s *HTTPServer) StartTLS() error {
+	if err := s.server.ListenAndServeTLS(s.tlsCertFile, s.tlsKeyFile); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("server.ListenAndServeTLS: %w", err)
 	}
 
 	return nil
@@ -248,6 +260,7 @@ func dataHandler() http.Handler {
 
 		if queryParams.Has("unit") {
 			switch strings.ToLower(queryParams.Get("unit")) {
+			case "b":
 			case "kb":
 				dataSize *= KB
 			case "mb":

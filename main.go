@@ -38,6 +38,18 @@ func main() {
 
 	go func() {
 		slog.Info(fmt.Sprintf("Starting http server on address %s:%s", cfg.ServerHost, cfg.ServerPort))
+
+		if cfg.TLSCrtFile != "" || cfg.TLSKeyFile != "" {
+			slog.Info("TLS enabled")
+
+			if err := srv.StartTLS(); err != nil {
+				slog.Error(fmt.Sprintf("srv.StartTLS: %v", err))
+				os.Exit(1)
+			}
+
+			return
+		}
+
 		if err := srv.Start(); err != nil {
 			slog.Error("srv.Start: %w", err)
 			os.Exit(1)
