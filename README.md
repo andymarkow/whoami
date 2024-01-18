@@ -1,12 +1,12 @@
-# Go Whoami Web Server
+# Whoami Go Web Server
 
 [![ci](https://github.com/andymarkow/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andymarkow/whoami/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/static/v1?label=go&message=v1.21%2b&color=blue&logo=go)](#)
-<!-- ![Release](https://img.shields.io/github/v/release/andymarkow/whoami?display_name=release&include_prereleases&sort=date) -->
 ![License](https://img.shields.io/github/license/andymarkow/whoami)
 ![Docker Pulls](https://img.shields.io/docker/pulls/andymarkow/whoami)
 ![Docker Tag](https://img.shields.io/docker/v/andymarkow/whoami?label=docker%20tag)
 ![Docker Image Size](https://img.shields.io/docker/image-size/andymarkow/whoami/latest)
+<!-- ![Release](https://img.shields.io/github/v/release/andymarkow/whoami?display_name=release&include_prereleases&sort=date) -->
 
 Simple Go web server based on net/http library which returns information about web server and HTTP context.
 
@@ -24,7 +24,7 @@ docker run --rm --name=whoami -p 80:8080 andymarkow/whoami
 
 Make a HTTP request:
 ```bash
-curl -Ssi http://localhost/
+$ curl -Ssi http://localhost/
 
 HTTP/1.1 200 OK
 Content-Length: 334
@@ -52,19 +52,24 @@ Under development.
 
 ### Configuration
 
-> Note: flags take precedence over environment variables.
+> NOTE: Flags take precedence over environment variables.
 
 | Flag | Environment variable | Default value | Description |
 | --- | --- | --- | --- |
-| `--host` | `WHOAMI_HOST` | `0.0.0.0` | Web server listen address |
-| `--port` | `WHOAMI_PORT` | `8080` | Web server listen port |
-| - | `WHOAMI_LOG_LEVEL` | `info` | Web server log level. Values: [debug,info,warn,error,fatal] |
-| - | `WHOAMI_LOG_URL_EXCLUDES` | `/favicon.ico,/healthz,/metrics` | Comma-separated list of urls to exclude from access log |
+| `host` | `WHOAMI_HOST` | `0.0.0.0` | Web server listen address |
+| `port` | `WHOAMI_PORT` | `8080` | Web server listen port |
+| `log-formatter` | `WHOAMI_LOG_FORMATTER` | `json` | Web server log formatter: `fmt` or `json` |
+| `log-level` | `WHOAMI_LOG_LEVEL` | `info` | Web server log level: `debug`, `info`, `warn`, `error` |
+| `access-log` | `WHOAMI_ACCESS_LOG` | `false` | Enable web server access log |
+| `access-log-skip-paths` | `WHOAMI_ACCESS_LOG_SKIP_PATHS` | `""` | Comma-separated list of url paths to exclude from access log |
+| `read-timeout` | `WHOAMI_READ_TIMEOUT` | `"0s"` | Web server read timeout |
+| `read-header-timeout` | `WHOAMI_READ_HEADER_TIMEOUT` | `"0s"` | Web server read header timeout |
+| `write-timeout` | `WHOAMI_WRITE_TIMEOUT` | `"0s"` | Web server write timeout |
 
 
 ## Usage
 
-### Routes
+### HTTP Routes
 
 - | Method | Path | Params | Description |
   | --- | --- | --- | --- |
