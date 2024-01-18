@@ -1,5 +1,5 @@
 variable "DOCKER_IMAGE_REPOSITORY" {
-  default = "ghcr.io/andyglass/whoami"
+  default = "ghcr.io/andymarkow/whoami"
 }
 
 variable "DOCKER_IMAGE_TAG" {
@@ -21,11 +21,11 @@ target "whoami" {
     "linux/amd64",
     "linux/arm64",
   ]
+  args = {
+    APP_VERSION = "${DOCKER_IMAGE_TAG}"
+  }
   tags = [
     "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}",
     notequal("", IS_RELEASE) ? "${DOCKER_IMAGE_REPOSITORY}:latest" : "",
   ]
-  args = {
-    APP_VERSION = "${DOCKER_IMAGE_TAG}"
-  }
 }
