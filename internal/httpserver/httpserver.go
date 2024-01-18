@@ -38,6 +38,7 @@ type HTTPServer struct {
 }
 
 type jsonResponse struct {
+	RequestID   string              `json:"request_id"`
 	Hostname    string              `json:"hostname"`
 	IP          []string            `json:"ip"`
 	Host        string              `json:"host"`
@@ -48,7 +49,6 @@ type jsonResponse struct {
 	Headers     http.Header         `json:"headers,omitempty"`
 	UserAgent   string              `json:"user_agent"`
 	RemoteAddr  string              `json:"remote_addr"`
-	RequestID   string              `json:"request_id"`
 	Environment map[string]string   `json:"environment,omitempty"`
 }
 
@@ -142,22 +142,6 @@ func skipURLPath(path string, pathExcludes []string) bool {
 	return false
 }
 
-// func responceDelayMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		delayQuery := c.Request().URL.Query().Get("delay")
-// 		if delayQuery == "" {
-// 			return next(c)
-// 		}
-// 		delay, err := time.ParseDuration(delayQuery)
-// 		if err != nil {
-// 			// logger.App.Error("Delay duration provided but could not be parsed from query param")
-// 			return next(c)
-// 		}
-// 		time.Sleep(delay)
-// 		return next(c)
-// 	}
-// }
-
 func useMiddleware(next http.Handler, withAccessLog bool, pathExcludes []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
@@ -165,7 +149,7 @@ func useMiddleware(next http.Handler, withAccessLog bool, pathExcludes []string)
 		requestID := r.Header.Get("X-Request-ID")
 		if requestID == "" {
 			requestID = uuid.New().String()
-			w.Header().Add("X-Request-ID", requestID)
+			r.Header.Set("X-Request-ID", requestID)
 		}
 
 		rw := negroni.NewResponseWriter(w)
@@ -294,7 +278,17 @@ func dataHandler() http.Handler {
 
 func apiHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data, err := getWhoamiData(r, w)
+		if r.URL.Query().Has("delay") {
+			duration, err := time.ParseDuration(r.URL.Query().Get("delay"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+
+				return
+			}
+			time.Sleep(duration)
+		}
+
+		data, err := getWhoamiData(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -313,14 +307,25 @@ func apiHandler() http.Handler {
 
 func whoamiHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data, err := getWhoamiData(r, w)
+		if r.URL.Query().Has("delay") {
+			duration, err := time.ParseDuration(r.URL.Query().Get("delay"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+
+				return
+			}
+			time.Sleep(duration)
+		}
+
+		data, err := getWhoamiData(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			return
 		}
 
-		resp := fmt.Sprintf(`Hostname: %s
+		resp := fmt.Sprintf(`RequestID: %s
+Hostname: %s
 IP: %s
 Host: %s
 URL: %s
@@ -330,8 +335,9 @@ Params: %v
 Headers: %v
 UserAgent: %s
 RemoteAddr: %s
-RequestID: %s
+Environment: %s
 `,
+			data.RequestID,
 			data.Hostname,
 			data.IP,
 			data.Host,
@@ -342,14 +348,14 @@ RequestID: %s
 			data.Headers,
 			data.UserAgent,
 			data.RemoteAddr,
-			data.RequestID,
+			data.Environment,
 		)
 
 		fmt.Fprintln(w, resp)
 	})
 }
 
-func getWhoamiData(r *http.Request, w http.ResponseWriter) (*jsonResponse, error) {
+func getWhoamiData(r *http.Request) (*jsonResponse, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, fmt.Errorf("os.Hostname: %w", err)
@@ -383,19 +389,29 @@ func getWhoamiData(r *http.Request, w http.ResponseWriter) (*jsonResponse, error
 		params[k] = v
 	}
 
-	requestID := w.Header().Get("X-Request-Id")
+	requestID := r.Header.Get("X-Request-Id")
+
+	environment := make(map[string]string)
+
+	if r.URL.Query().Has("env") {
+		for _, env := range os.Environ() {
+			split := strings.SplitN(env, "=", 2)
+			environment[split[0]] = split[1]
+		}
+	}
 
 	return &jsonResponse{
-		Hostname:   hostname,
-		IP:         localIPs,
-		Host:       r.Host,
-		URL:        r.RequestURI,
-		Params:     params,
-		Method:     r.Method,
-		Proto:      r.Proto,
-		Headers:    r.Header.Clone(),
-		UserAgent:  r.UserAgent(),
-		RemoteAddr: remoteAddr,
-		RequestID:  requestID,
+		RequestID:   requestID,
+		Hostname:    hostname,
+		IP:          localIPs,
+		Host:        r.Host,
+		URL:         r.RequestURI,
+		Params:      params,
+		Method:      r.Method,
+		Proto:       r.Proto,
+		Headers:     r.Header.Clone(),
+		UserAgent:   r.UserAgent(),
+		RemoteAddr:  remoteAddr,
+		Environment: environment,
 	}, nil
 }
