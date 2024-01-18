@@ -3,12 +3,14 @@ package httpserver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/andymarkow/whoami/internal/config"
@@ -18,6 +20,15 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
 	"github.com/urfave/negroni"
+)
+
+// Data size units.
+const (
+	_        = iota
+	KB int64 = 1 << (10 * iota)
+	MB
+	GB
+	TB
 )
 
 var healthStatus = 200
@@ -48,22 +59,37 @@ type jsonResponse struct {
 func NewHTTPServer(cfg *config.Config) *HTTPServer {
 	mux := http.NewServeMux()
 
-	mux.Handle("/metrics", promhttp.Handler())
-	mux.Handle("/health", useMiddleware(healthHandler(), cfg.AccessLogEnabled))
-	mux.Handle("/data", useMiddleware(dataHandler(), cfg.AccessLogEnabled))
-	mux.Handle("/api/", useMiddleware(apiHandler(), cfg.AccessLogEnabled))
-	mux.Handle("/api", useMiddleware(apiHandler(), cfg.AccessLogEnabled))
-	mux.Handle("/", useMiddleware(whoamiHandler(), cfg.AccessLogEnabled))
+	mux.Handle("/metrics", useMiddleware(promhttp.Handler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
+	mux.Handle("/health", useMiddleware(healthHandler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
+	mux.Handle("/upload", useMiddleware(uploadHandler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
+	mux.Handle("/data", useMiddleware(dataHandler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
+	mux.Handle("/api/", useMiddleware(apiHandler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
+	mux.Handle("/api", useMiddleware(apiHandler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
+	mux.Handle("/", useMiddleware(whoamiHandler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
 
 	metricsMW := middleware.New(middleware.Config{
-		Recorder: metrics.NewRecorder(metrics.Config{}),
+		Recorder: metrics.NewRecorder(metrics.Config{
+			HandlerIDLabel: "path",
+			DurationBuckets: []float64{
+				0.05, // 50ms
+				0.1,  // 100ms
+				0.5,  // 500ms
+				1,    // 1s
+				2.5,  // 2.5s
+				5,    // 5s
+				10,   // 10s
+			},
+		}),
 	})
 
 	h := std.Handler("", metricsMW, mux)
 
 	srv := &http.Server{
-		Addr:    cfg.ServerHost + ":" + cfg.ServerPort,
-		Handler: h,
+		Addr:              cfg.ServerHost + ":" + cfg.ServerPort,
+		Handler:           h,
+		ReadTimeout:       cfg.ReadTimeout,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+		WriteTimeout:      cfg.WriteTimeout,
 	}
 
 	return &HTTPServer{
@@ -98,7 +124,41 @@ func (s *HTTPServer) Shutdown() error {
 	return nil
 }
 
-func useMiddleware(next http.Handler, withAccessLog bool) http.Handler {
+// skipURLPath checks if the given path should be skipped based on a list of excluded paths.
+//
+// Parameters:
+// - path: The path to be checked.
+// - pathExcludes: The list of excluded paths.
+//
+// Returns:
+// - bool: True if the path should be skipped, false otherwise.
+func skipURLPath(path string, pathExcludes []string) bool {
+	for _, exclude := range pathExcludes {
+		if strings.HasPrefix(path, exclude) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// func responceDelayMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// 	return func(c echo.Context) error {
+// 		delayQuery := c.Request().URL.Query().Get("delay")
+// 		if delayQuery == "" {
+// 			return next(c)
+// 		}
+// 		delay, err := time.ParseDuration(delayQuery)
+// 		if err != nil {
+// 			// logger.App.Error("Delay duration provided but could not be parsed from query param")
+// 			return next(c)
+// 		}
+// 		time.Sleep(delay)
+// 		return next(c)
+// 	}
+// }
+
+func useMiddleware(next http.Handler, withAccessLog bool, pathExcludes []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 
@@ -111,7 +171,7 @@ func useMiddleware(next http.Handler, withAccessLog bool) http.Handler {
 		rw := negroni.NewResponseWriter(w)
 		next.ServeHTTP(rw, r)
 
-		if withAccessLog {
+		if withAccessLog && !skipURLPath(r.URL.Path, pathExcludes) {
 			fmt.Printf(
 				`{"time":"%s","request_id":"%s","remote_ip":"%s",`+
 					`"host":"%s","method":"%s","uri":"%s","status":%d,`+
@@ -173,9 +233,62 @@ func healthHandler() http.Handler {
 	})
 }
 
+func uploadHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	})
+}
+
 func dataHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: implement
+		queryParams := r.URL.Query()
+
+		var dataSize int64 = 1
+
+		if queryParams.Has("size") {
+			var err error
+			dataSize, err = strconv.ParseInt(queryParams.Get("size"), 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+
+				return
+			}
+
+			if dataSize < 0 {
+				dataSize *= -1
+			} else if dataSize == 0 {
+				http.Error(w, errors.New("size cannot be 0").Error(), http.StatusBadRequest)
+
+				return
+			}
+		}
+
+		if queryParams.Has("unit") {
+			switch strings.ToLower(queryParams.Get("unit")) {
+			case "kb":
+				dataSize *= KB
+			case "mb":
+				dataSize *= MB
+			case "gb":
+				dataSize *= GB
+			case "tb":
+				dataSize *= TB
+			}
+		}
+
+		content := &contentReader{size: dataSize}
+
+		if queryParams.Has("attachment") {
+			w.Header().Set("Content-Disposition", "Attachment")
+			http.ServeContent(w, r, "data.txt", time.Now(), content)
+
+			return
+		}
+
+		if _, err := io.Copy(w, content); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
 	})
 }
 

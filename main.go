@@ -20,9 +20,10 @@ var (
 func main() {
 	telemetry.Init(Version)
 
-	cfg := config.NewConfig()
-
-	srv := httpserver.NewHTTPServer(cfg)
+	cfg, err := config.NewConfig()
+	if err != nil {
+		panic(fmt.Errorf("config.NewConfig: %w", err))
+	}
 
 	l, err := logger.NewLogger(&logger.Config{
 		LogFormatter: cfg.LogFormatter,
@@ -33,6 +34,8 @@ func main() {
 	}
 	slog.SetDefault(l)
 
+	srv := httpserver.NewHTTPServer(cfg)
+
 	go func() {
 		slog.Info(fmt.Sprintf("Starting http server on address %s:%s", cfg.ServerHost, cfg.ServerPort))
 		if err := srv.Start(); err != nil {
@@ -41,7 +44,7 @@ func main() {
 		}
 	}()
 
-	// Gracefully shutdown the server
+	// Gracefully shutdown the web server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

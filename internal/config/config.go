@@ -4,21 +4,24 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
+	"time"
 )
 
 type Config struct {
-	ServerHost       string
-	ServerPort       string
-	LogFormatter     string // Possible values: fmt, json.
-	LogLevel         string // Possible values: error, warn, info, debug.
-	AccessLogEnabled bool
+	ServerHost         string
+	ServerPort         string
+	LogFormatter       string // Possible values: fmt, json.
+	LogLevel           string // Possible values: error, warn, info, debug.
+	AccessLogEnabled   bool
+	AccessLogSkipPaths []string
+	ReadTimeout        time.Duration
+	ReadHeaderTimeout  time.Duration
+	WriteTimeout       time.Duration
 }
 
 // NewConfig creates a new Config object with default values.
-//
-// Return:
-// - *Config: a pointer to the newly created Config object.
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	flag.Usage = func() {
 		fmt.Printf("Whoami - simple web server for development and testing purposes.\n\n")
 		fmt.Printf("Usage:\n")
@@ -29,15 +32,43 @@ func NewConfig() *Config {
 
 	cfg := &Config{}
 
+	var accessLogSkipPaths string
+	var readTimeout, readHeaderTimeout, writeTimeout string
+
 	flag.StringVar(&cfg.ServerHost, "host", getEnv("WHOAMI_HOST", "0.0.0.0"), "Web server host address")
 	flag.StringVar(&cfg.ServerPort, "port", getEnv("WHOAMI_PORT", "8080"), "Web server port number")
 	flag.StringVar(&cfg.LogFormatter, "log-formatter", getEnv("WHOAMI_LOG_FORMATTER", "json"), "Log formatter: 'fmt' or 'json'")
 	flag.StringVar(&cfg.LogLevel, "log-level", getEnv("WHOAMI_LOG_LEVEL", "info"), "Log level: 'error', 'warn', 'error', 'debug'")
 	flag.BoolVar(&cfg.AccessLogEnabled, "access-log", getEnv("WHOAMI_ACCESS_LOG", "true") == "true", "Enable access log")
+	flag.StringVar(&accessLogSkipPaths, "access-log-skip-paths", getEnv("WHOAMI_ACCESS_LOG_SKIP_PATHS", ""), "Comma separated list of URL paths to skip in access log")
+	flag.StringVar(&readTimeout, "read-timeout", getEnv("WHOAMI_READ_TIMEOUT", "0s"), "Web server read timeout")
+	flag.StringVar(&readHeaderTimeout, "read-header-timeout", getEnv("WHOAMI_READ_HEADER_TIMEOUT", "0s"), "Web server read header timeout")
+	flag.StringVar(&writeTimeout, "write-timeout", getEnv("WHOAMI_WRITE_TIMEOUT", "0s"), "Web server write timeout")
 
 	flag.Parse()
 
-	return cfg
+	if accessLogSkipPaths != "" {
+		cfg.AccessLogSkipPaths = strings.Split(accessLogSkipPaths, ",")
+	}
+
+	var err error
+
+	cfg.ReadTimeout, err = time.ParseDuration(readTimeout)
+	if err != nil {
+		return nil, fmt.Errorf("time.ParseDuration: %w", err)
+	}
+
+	cfg.ReadHeaderTimeout, err = time.ParseDuration(readHeaderTimeout)
+	if err != nil {
+		return nil, fmt.Errorf("time.ParseDuration: %w", err)
+	}
+
+	cfg.WriteTimeout, err = time.ParseDuration(writeTimeout)
+	if err != nil {
+		return nil, fmt.Errorf("time.ParseDuration: %w", err)
+	}
+
+	return cfg, nil
 }
 
 // getEnv gets the value of an environment variable specified by the key.
