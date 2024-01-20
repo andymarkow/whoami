@@ -2,6 +2,8 @@ package httpserver
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -48,6 +50,7 @@ type Server struct {
 	server      *http.Server
 	tlsCertFile string
 	tlsKeyFile  string
+	tlsCAFile   string
 }
 
 type jsonResponse struct {
@@ -109,6 +112,7 @@ func NewServer(cfg *Config) *Server {
 		server:      srv,
 		tlsCertFile: cfg.TLSCrtFile,
 		tlsKeyFile:  cfg.TLSKeyFile,
+		tlsCAFile:   cfg.TLSCAFile,
 	}
 }
 
@@ -125,6 +129,13 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) StartTLS() error {
+	if s.tlsCAFile != "" {
+		var err error
+		if s.server.TLSConfig, err = getTLSConfig(s.tlsCAFile); err != nil {
+			return fmt.Errorf("getTLSConfig: %w", err)
+		}
+	}
+
 	if err := s.server.ListenAndServeTLS(s.tlsCertFile, s.tlsKeyFile); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("server.ListenAndServeTLS: %w", err)
 	}
@@ -145,6 +156,26 @@ func (s *Server) Shutdown() error {
 	}
 
 	return nil
+}
+
+// getTLSConfig returns a tls.Config and an error. It reads the CA certificate
+// from the specified file and creates a tls.Config object with the client
+// authentication type, client certificate authority, and minimum TLS version.
+// This is used to configure the server's mutual TLS configuration.
+func getTLSConfig(caFile string) (*tls.Config, error) {
+	caCrt, err := os.ReadFile(caFile)
+	if err != nil {
+		return nil, fmt.Errorf("os.ReadFile: %w", err)
+	}
+
+	caCrtPool := x509.NewCertPool()
+	caCrtPool.AppendCertsFromPEM(caCrt)
+
+	return &tls.Config{
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		ClientCAs:  caCrtPool,
+		MinVersion: tls.VersionTLS12,
+	}, nil
 }
 
 // skipURLPath checks if the given path should be skipped based on a list of excluded paths.
