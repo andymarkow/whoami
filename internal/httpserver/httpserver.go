@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andymarkow/whoami/internal/config"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
@@ -33,7 +32,19 @@ const (
 
 var healthStatus = 200
 
-type HTTPServer struct {
+type Config struct {
+	ServerAddr         string
+	AccessLogEnabled   bool
+	AccessLogSkipPaths []string
+	ReadTimeout        time.Duration
+	ReadHeaderTimeout  time.Duration
+	WriteTimeout       time.Duration
+	TLSCrtFile         string
+	TLSKeyFile         string
+	TLSCAFile          string
+}
+
+type Server struct {
 	server      *http.Server
 	tlsCertFile string
 	tlsKeyFile  string
@@ -56,9 +67,9 @@ type jsonResponse struct {
 
 // NewHTTPServer creates a new HTTP server with the given configuration.
 //
-// It takes a pointer to a config.Config struct as a parameter.
-// It returns a pointer to an HTTPServer struct.
-func NewHTTPServer(cfg *config.Config) *HTTPServer {
+// It takes a pointer to a Config struct as a parameter.
+// It returns a pointer to an httpServer struct.
+func NewServer(cfg *Config) *Server {
 	mux := http.NewServeMux()
 
 	mux.Handle("/metrics", useMiddleware(promhttp.Handler(), cfg.AccessLogEnabled, cfg.AccessLogSkipPaths))
@@ -87,14 +98,14 @@ func NewHTTPServer(cfg *config.Config) *HTTPServer {
 	h := std.Handler("", metricsMW, mux)
 
 	srv := &http.Server{
-		Addr:              cfg.ServerHost + ":" + cfg.ServerPort,
+		Addr:              cfg.ServerAddr,
 		Handler:           h,
 		ReadTimeout:       cfg.ReadTimeout,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}
 
-	return &HTTPServer{
+	return &Server{
 		server:      srv,
 		tlsCertFile: cfg.TLSCrtFile,
 		tlsKeyFile:  cfg.TLSKeyFile,
@@ -105,7 +116,7 @@ func NewHTTPServer(cfg *config.Config) *HTTPServer {
 //
 // It does not take any parameters.
 // It returns an error.
-func (s *HTTPServer) Start() error {
+func (s *Server) Start() error {
 	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("server.ListenAndServe: %w", err)
 	}
@@ -113,7 +124,7 @@ func (s *HTTPServer) Start() error {
 	return nil
 }
 
-func (s *HTTPServer) StartTLS() error {
+func (s *Server) StartTLS() error {
 	if err := s.server.ListenAndServeTLS(s.tlsCertFile, s.tlsKeyFile); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("server.ListenAndServeTLS: %w", err)
 	}
@@ -125,7 +136,7 @@ func (s *HTTPServer) StartTLS() error {
 //
 // It uses a context with a timeout of 5 seconds to gracefully shutdown the server.
 // It returns an error if the server fails to shutdown.
-func (s *HTTPServer) Shutdown() error {
+func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

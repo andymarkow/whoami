@@ -34,7 +34,17 @@ func main() {
 	}
 	slog.SetDefault(l)
 
-	srv := httpserver.NewHTTPServer(cfg)
+	srv := httpserver.NewServer(&httpserver.Config{
+		ServerAddr:         cfg.ServerHost + ":" + cfg.ServerPort,
+		AccessLogEnabled:   cfg.AccessLogEnabled,
+		AccessLogSkipPaths: cfg.AccessLogSkipPaths,
+		ReadTimeout:        cfg.ReadTimeout,
+		ReadHeaderTimeout:  cfg.ReadHeaderTimeout,
+		WriteTimeout:       cfg.WriteTimeout,
+		TLSCrtFile:         cfg.TLSCrtFile,
+		TLSKeyFile:         cfg.TLSKeyFile,
+		TLSCAFile:          cfg.TLSCAFile,
+	})
 
 	go func() {
 		slog.Info(fmt.Sprintf("Starting http server on address %s:%s", cfg.ServerHost, cfg.ServerPort))
