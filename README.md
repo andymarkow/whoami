@@ -142,6 +142,17 @@ Under development.
 
 - | Method | Path | Params | Description |
   | --- | --- | --- | --- |
+  | `POST` | `/upload` | `-` | Simulates web server data upload |
+
+  Request:
+  ```bash
+  curl -Ss -X POST http://localhost/upload -F file=@file.txt
+  ```
+  ---
+
+
+- | Method | Path | Params | Description |
+  | --- | --- | --- | --- |
   | `GET` | `/health` | `-` | Returns web server healthcheck status |
   
   Request:

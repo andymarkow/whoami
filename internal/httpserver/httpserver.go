@@ -171,7 +171,8 @@ func useMiddleware(next http.Handler, withAccessLog bool, pathExcludes []string)
 			fmt.Printf(
 				`{"time":"%s","request_id":"%s","remote_ip":"%s",`+
 					`"host":"%s","method":"%s","uri":"%s","status":%d,`+
-					`"proto":"%s","user_agent":"%s","duration":"%s","bytes_in":%d,"bytes_out":%d}`+"\n",
+					`"proto":"%s","user_agent":"%s","duration":"%s",`+
+					`"bytes_in":%d,"bytes_out":%d}`+"\n",
 				time.Now().Format("2006-01-02T15:04:05.000Z"),
 				requestID,
 				r.RemoteAddr,
@@ -231,6 +232,23 @@ func healthHandler() http.Handler {
 
 func uploadHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		file, handler, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+		defer file.Close()
+
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprintf(w,
+			"Uploaded File: %s\n"+
+				"File Size: %d\n"+
+				"MIME Header: %v\n",
+			handler.Filename,
+			handler.Size,
+			handler.Header,
+		)
 	})
 }
 

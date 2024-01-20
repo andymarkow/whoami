@@ -5,6 +5,7 @@
 
 GOVERSION=
 CGO_ENABLED=0
+WHOAMI_ACCESS_LOG=true
 
 .PHONY: all run
 
