@@ -58,13 +58,16 @@ Under development.
 | --- | --- | --- | --- |
 | `host` | `WHOAMI_HOST` | `0.0.0.0` | Web server listen address |
 | `port` | `WHOAMI_PORT` | `8080` | Web server listen port |
-| `log-formatter` | `WHOAMI_LOG_FORMATTER` | `json` | Web server log formatter: `fmt` or `json` |
-| `log-level` | `WHOAMI_LOG_LEVEL` | `info` | Web server log level: `debug`, `info`, `warn`, `error` |
+| `log-formatter` | `WHOAMI_LOG_FORMATTER` | `json` | Output log formatter: `fmt` or `json` |
+| `log-level` | `WHOAMI_LOG_LEVEL` | `info` | Output log level: `debug`, `info`, `warn`, `error` |
 | `access-log` | `WHOAMI_ACCESS_LOG` | `false` | Enable web server access log |
 | `access-log-skip-paths` | `WHOAMI_ACCESS_LOG_SKIP_PATHS` | `""` | Comma-separated list of url paths to exclude from access log |
 | `read-timeout` | `WHOAMI_READ_TIMEOUT` | `"0s"` | Web server read timeout |
 | `read-header-timeout` | `WHOAMI_READ_HEADER_TIMEOUT` | `"0s"` | Web server read header timeout |
 | `write-timeout` | `WHOAMI_WRITE_TIMEOUT` | `"0s"` | Web server write timeout |
+| `tls-crt` | `WHOAMI_TLS_CRT_FILE` | `""` | TLS certificate file |
+| `tls-key` | `WHOAMI_TLS_KEY_FILE` | `""` | TLS private key file |
+| `tls-ca` | `WHOAMI_TLS_CA_FILE` | `""` | TLS CA certificate file for mTLS authentication |
 
 
 ## Usage
