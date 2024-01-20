@@ -26,7 +26,7 @@ type Config struct {
 // NewConfig creates a new Config object with default values.
 func NewConfig() (*Config, error) {
 	flag.Usage = func() {
-		fmt.Printf("Whoami - Simple Go web server for development and testing purposes.\n\n")
+		fmt.Printf("Whoami - Simple Go web server based on net/http library which returns information about web server and HTTP context.\n\n")
 		fmt.Printf("Usage:\n")
 		fmt.Printf("  whoami [flags]\n\n")
 		fmt.Printf("Flags:\n")
@@ -49,7 +49,7 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&writeTimeout, "write-timeout", getEnv("WHOAMI_WRITE_TIMEOUT", "0s"), "Web server write timeout")
 	flag.StringVar(&cfg.TLSCrtFile, "tls-crt", getEnv("WHOAMI_TLS_CRT_FILE", ""), "TLS certificate file")
 	flag.StringVar(&cfg.TLSKeyFile, "tls-key", getEnv("WHOAMI_TLS_KEY_FILE", ""), "TLS private key file")
-	flag.StringVar(&cfg.TLSCAFile, "tls-ca", getEnv("WHOAMI_TLS_CA_FILE", ""), "TLS CA certificate file to enable mTLS authentication")
+	flag.StringVar(&cfg.TLSCAFile, "tls-ca", getEnv("WHOAMI_TLS_CA_FILE", ""), "TLS CA certificate file for mTLS authentication")
 
 	flag.Parse()
 
