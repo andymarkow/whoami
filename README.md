@@ -2,10 +2,10 @@
 
 [![ci](https://github.com/andymarkow/whoami/actions/workflows/ci.yml/badge.svg)](https://github.com/andymarkow/whoami/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/static/v1?label=go&message=v1.21%2b&color=blue&logo=go)](#)
-![License](https://img.shields.io/github/license/andymarkow/whoami)
 ![Docker Pulls](https://img.shields.io/docker/pulls/andymarkow/whoami)
 ![Docker Tag](https://img.shields.io/docker/v/andymarkow/whoami?label=docker%20tag)
 ![Docker Image Size](https://img.shields.io/docker/image-size/andymarkow/whoami/latest)
+[![License](https://img.shields.io/github/license/andymarkow/whoami?label=license)](#)
 <!-- ![Release](https://img.shields.io/github/v/release/andymarkow/whoami?display_name=release&include_prereleases&sort=date) -->
 
 Simple Go web server based on net/http library which returns information about web server and HTTP context.
