@@ -1,9 +1,0 @@
-apiVersion: v2
-type: application
-version: 0.1.0
-name: whoami
-description: Whoami Helm chart for Kubernetes
-appVersion: 0.0.1
-home: https://github.com/andyglass/whoami
-sources:
-  - https://github.com/andyglass/whoami

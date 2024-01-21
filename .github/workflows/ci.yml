@@ -1,0 +1,178 @@
+name: ci
+
+on:
+  push:
+  #   branches: [ $default-branch ]
+  # pull_request:
+  #   branches: [ $default-branch ]
+
+# env:
+  # DOCKER_IMAGE_REPOSITORY: "ghcr.io/${{ github.repository }}"
+  # DOCKER_IMAGE_TAG: "${{ github.sha }}"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.21
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+      - name: Get env vars
+        run: env
+
+
+  build:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    needs: [lint]
+    outputs:
+      docker_image_ref: ${{ steps.build.outputs.docker_image_ref }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Check docker and buildx versions
+        run: docker version && docker buildx version
+      - id: build
+        name: Build Docker image
+        env:
+          DOCKER_IMAGE_REPOSITORY: "ttl.sh/${{ github.sha }}"
+          DOCKER_IMAGE_TAG: "1h"
+        run: |
+          docker buildx create --use
+          docker buildx bake --push
+          echo "docker_image_ref=$DOCKER_IMAGE_REPOSITORY:$DOCKER_IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+
+  # https://github.com/marketplace/actions/aqua-security-trivy
+  trivy-fs:
+    name: Trivy Scan FS
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Run Trivy vulnerability scanner in fs mode (ALL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          ignore-unfixed: true
+      - name: Run Trivy vulnerability scanner in fs mode (CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          ignore-unfixed: true
+          exit-code: "1"
+          severity: "CRITICAL"
+          format: "sarif"
+          output: "trivy-fs-report.sarif"  
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-fs-report.sarif"
+
+
+  trivy-config:
+    name: Trivy Scan Config
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Run Trivy vulnerability scanner in config mode (ALL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          ignore-unfixed: true
+      - name: Run Trivy vulnerability scanner in config mode (CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          ignore-unfixed: true
+          exit-code: "1"
+          severity: "CRITICAL"
+  
+
+  trivy-image:
+    name: Trivy Scan Image
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Run Trivy vulnerability scanner (ALL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ needs.build.outputs.docker_image_ref }}"
+          format: "table"
+          vuln-type: "os,library"
+          ignore-unfixed: true
+      - name: Run Trivy vulnerability scanner (CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ needs.build.outputs.docker_image_ref }}"
+          format: "table"
+          vuln-type: "os"
+          ignore-unfixed: true
+          exit-code: "1"
+          severity: "CRITICAL"
+
+
+  # github-registry:
+  #   name: Github Push
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - trivy-fs
+  #     - trivy-config
+  #     - trivy-image
+  #   env:
+  #     IS_RELEASE: "true"
+  #     DOCKER_IMAGE_REPOSITORY: "ghcr.io/${{ github.repository }}"
+  #   steps:
+  #     - name: Checkout source code
+  #       uses: actions/checkout@v3
+  #     - name: Login to Docker registry
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: "ghcr.io"
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Build Docker image
+  #       run: |
+  #         docker buildx create --use
+  #         # docker buildx bake --push
+
+
+  dockerhub-registry:
+    name: DockerHub Push
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    needs:
+      - trivy-fs
+      - trivy-config
+      - trivy-image
+    env:
+      IS_RELEASE: "true"
+      DOCKER_IMAGE_REPOSITORY: "${{ github.repository }}" # "andymarkow/whoami"
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Build Docker image
+        run: |
+          docker buildx create --use
+          docker buildx bake --push

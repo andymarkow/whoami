@@ -1,65 +1,79 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"net/http"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/andymarkow/whoami/internal/config"
+	"github.com/andymarkow/whoami/internal/httpserver"
+	"github.com/andymarkow/whoami/internal/logger"
+	"github.com/andymarkow/whoami/internal/telemetry"
 )
 
-var log *logrus.Logger
-
-func init() {
-	log = logrus.New()
-	log.SetFormatter(&logrus.TextFormatter{
-		DisableColors: true,
-		FullTimestamp: true,
-	})
-}
-
-type server struct {
-	cfg *config
-	web *http.Server
-}
+var (
+	Version = "0.0.0-dev"
+)
 
 func main() {
-	// Server context initialization
-	srv := &server{
-		cfg: getConfig(),
-	}
-	srv.web = &http.Server{
-		Addr:         fmt.Sprintf("%s:%s", srv.cfg.ServerHost, srv.cfg.ServerPort),
-		Handler:      srv.getRouter(),
-		ReadTimeout:  60 * time.Second,
-		WriteTimeout: 60 * time.Second,
+	telemetry.Init(Version)
+
+	cfg, err := config.NewConfig()
+	if err != nil {
+		panic(fmt.Errorf("config.NewConfig: %w", err))
 	}
 
-	// OS Signal handler
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	l, err := logger.NewLogger(&logger.Config{
+		LogFormatter: cfg.LogFormatter,
+		LogLevel:     cfg.LogLevel,
+	})
+	if err != nil {
+		panic(fmt.Errorf("NewLogger: %w", err))
+	}
+	slog.SetDefault(l)
 
-	log.Infof("Starting web server on port %s", srv.cfg.ServerPort)
+	srv := httpserver.NewServer(&httpserver.Config{
+		ServerAddr:         cfg.ServerHost + ":" + cfg.ServerPort,
+		AccessLogEnabled:   cfg.AccessLogEnabled,
+		AccessLogSkipPaths: cfg.AccessLogSkipPaths,
+		ReadTimeout:        cfg.ReadTimeout,
+		ReadHeaderTimeout:  cfg.ReadHeaderTimeout,
+		WriteTimeout:       cfg.WriteTimeout,
+		TLSCrtFile:         cfg.TLSCrtFile,
+		TLSKeyFile:         cfg.TLSKeyFile,
+		TLSCAFile:          cfg.TLSCAFile,
+	})
+
 	go func() {
-		if err := srv.web.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+		slog.Info(fmt.Sprintf("Starting http server on address %s:%s", cfg.ServerHost, cfg.ServerPort))
+
+		if cfg.TLSCrtFile != "" || cfg.TLSKeyFile != "" {
+			slog.Info("TLS enabled")
+
+			if err := srv.StartTLS(); err != nil {
+				slog.Error(fmt.Sprintf("srv.StartTLS: %v", err))
+				os.Exit(1)
+			}
+
+			return
+		}
+
+		if err := srv.Start(); err != nil {
+			slog.Error("srv.Start: %w", err)
+			os.Exit(1)
 		}
 	}()
 
-	<-done
-	log.Info("Web server graceful shutdown in progress")
+	// Gracefully shutdown the web server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer func() {
-		cancel()
-	}()
-
-	if err := srv.web.Shutdown(ctx); err != nil {
-		log.Errorf("Web server graceful shutdown has failed: %+v", err)
+	slog.Info("Http server graceful shutdown initiated")
+	if err := srv.Shutdown(); err != nil {
+		slog.Error("srv.Shutdown: %w", err)
+		os.Exit(1)
 	}
-	log.Info("Web server gracefully stopped")
 }
