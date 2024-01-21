@@ -6,6 +6,9 @@
 GOVERSION=
 CGO_ENABLED=0
 WHOAMI_ACCESS_LOG=true
+WHOAMI_TLS_CERT_FILE=./tls/server.crt
+WHOAMI_TLS_KEY_FILE=./tls/server.key
+WHOAMI_TLS_CA_FILE=./tls/ca.crt
 
 .PHONY: all run
 

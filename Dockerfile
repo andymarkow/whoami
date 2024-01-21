@@ -25,4 +25,8 @@ FROM alpine:3.19
 
 COPY --from=builder /build/whoami /usr/local/bin/whoami
 
-CMD ["/usr/local/bin/whoami"]
+RUN apk --no-cache add ca-certificates &&\
+    rm -rf /var/cache/apk/* &&\
+    update-ca-certificates
+
+ENTRYPOINT ["/usr/local/bin/whoami"]

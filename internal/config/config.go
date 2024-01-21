@@ -47,7 +47,7 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&readTimeout, "read-timeout", getEnv("WHOAMI_READ_TIMEOUT", "0s"), "Web server read timeout")
 	flag.StringVar(&readHeaderTimeout, "read-header-timeout", getEnv("WHOAMI_READ_HEADER_TIMEOUT", "0s"), "Web server read header timeout")
 	flag.StringVar(&writeTimeout, "write-timeout", getEnv("WHOAMI_WRITE_TIMEOUT", "0s"), "Web server write timeout")
-	flag.StringVar(&cfg.TLSCrtFile, "tls-crt", getEnv("WHOAMI_TLS_CRT_FILE", ""), "TLS certificate file")
+	flag.StringVar(&cfg.TLSCrtFile, "tls-cert", getEnv("WHOAMI_TLS_CERT_FILE", ""), "TLS certificate file")
 	flag.StringVar(&cfg.TLSKeyFile, "tls-key", getEnv("WHOAMI_TLS_KEY_FILE", ""), "TLS private key file")
 	flag.StringVar(&cfg.TLSCAFile, "tls-ca", getEnv("WHOAMI_TLS_CA_FILE", ""), "TLS CA certificate file for mTLS authentication")
 

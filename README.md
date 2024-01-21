@@ -65,7 +65,7 @@ Under development.
 | `read-timeout` | `WHOAMI_READ_TIMEOUT` | `"0s"` | Web server read timeout |
 | `read-header-timeout` | `WHOAMI_READ_HEADER_TIMEOUT` | `"0s"` | Web server read header timeout |
 | `write-timeout` | `WHOAMI_WRITE_TIMEOUT` | `"0s"` | Web server write timeout |
-| `tls-crt` | `WHOAMI_TLS_CRT_FILE` | `""` | TLS certificate file |
+| `tls-cert` | `WHOAMI_TLS_CERT_FILE` | `""` | TLS certificate file |
 | `tls-key` | `WHOAMI_TLS_KEY_FILE` | `""` | TLS private key file |
 | `tls-ca` | `WHOAMI_TLS_CA_FILE` | `""` | TLS CA certificate file for mTLS authentication |
 
